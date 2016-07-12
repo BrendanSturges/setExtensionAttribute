@@ -7,20 +7,38 @@ Function Get-FileName($initialDirectory){
 	$OpenFileDialog.filename
 }
 
+Function doStuff(){
+	While(($toggle = Read-Host "What do you want to update for this list?  `n(1) Patch Group `n(2) Organization `n(3) Application") -notmatch '1$|2$|3$'){
+	#empty while to keep prompting for correct data
+	}
+	$changeIt = Read-Host "What do you want this to be set to?"
+	foreach($server in $serverList){
+		Try{
+			Set-ADComputer -identity $server -replace @{ExtensionAttribute$toggle=$changeIt}
+		}
+		Catch{
+			Write-Host "$server : $_.Exception.Message"
+		}
+	}
+}
+
+$ErrorActionPreference=Continue
 Import-Module ActiveDirectory
 
 Write-Host "Please choose a server list in TXT or CSV format"
 
 $serverList = Get-Content -Path (Get-FileName)
 
-While(($toggle = Read-Host "What do you want to update for this list?  `n(1) Patch Group `n(2) Application `n(3) DU") -notmatch '1$|2$|3$'){
+While(($domain = Read-Host "What domain is this for?  `n(1) DEVGAC `n(2) GAC") -notmatch '1$|2$'){
 	#empty while to keep prompting for correct data
 }
 
-$changeIt = Read-Host "What do you want this to be set to?"
-
-foreach($server in $serverList){
-	Set-ADComputer -identity $server -replace @{ExtensionAttribute$toggle=$changeIt}
+if($domain -eq "1"){
+	#connect to DEV	
+	doStuff()
 }
 
-
+if($domain -eq "2"){
+	#connect to PROD
+	doStuff()
+}
